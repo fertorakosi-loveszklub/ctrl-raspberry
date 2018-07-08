@@ -1,6 +1,6 @@
+import Debounce
 import json
 from rpi_rf import RFDevice
-import time
 
 
 class RadioClient:
@@ -8,23 +8,41 @@ class RadioClient:
         self.rf_device = RFDevice(config.get("rxPin", 2))
         self.rf_device.enable_rx()
         self.rx_timestamp = None
-        self.debounce_timeout = 1000
-        self.last_debounce = 0
+        self.debounce = Debounce.Debounce(config.get("rxDebounce", 1500))
         self.keymap = {}
         self.load_keymap("radio.json")
+        self.disallow_type2 = False
+
+    def authorize(self, radio_code):
+        message = self.get(radio_code)
+        if not message:
+            return False
+        if message['type'] == '1':
+            return True
+        return not self.disallow_type2
+
+    def toggle_type2(self):
+        self.disallow_type2 = not self.disallow_type2
 
     def load_keymap(self, filename):
         with open(filename) as f:
                 self.keymap = json.load(f)
                         
-    def remember(self, radio_code, remote):
-        self.keymap[radio_code] = remote
+    def remember(self, radio_code, remote, type = '2'):
+        if str(radio_code) in self.keymap:
+            self.keymap.pop(str(radio_code))
+
+        self.keymap[str(radio_code)] = {
+            'message': 'rotate' + str(remote),
+            'type': str(type)
+        }
+
         self.save_keymap("radio.json")
 
-    def get_message(self, radio_code):
-        if radio_code not in self.keymap:
+    def get(self, radio_code):
+        if str(radio_code) not in self.keymap:
             return None
-        return self.keymap[radio_code]
+        return self.keymap[str(radio_code)]
 
     def save_keymap(self, filename):
         text = json.dumps(self.keymap)
@@ -33,16 +51,17 @@ class RadioClient:
         text_file.close()
 
     def receive_radio(self):
-        if self.debounce() and self.rf_device.rx_code_timestamp != self.rx_timestamp:
-            if self.rf_device.rx_code:
-                return self.rf_device.rx_code
+        if self.rf_device.rx_code_timestamp == self.rx_timestamp:
+            return None
 
-        return None
+        if not self.rf_device.rx_code:
+            return None
 
-    def debounce(self):
-        now = int(round(time.time() * 1000))
-        if now - self.last_debounce < self.debounce_timeout:
-            return False
+        if not self.rf_device.rx_proto == 1:
+            return None
 
-        self.last_debounce = now
-        return True
+        if not self.debounce.debounce():
+            return None
+
+        self.rx_timestamp = self.rf_device.rx_code_timestamp
+        return self.rf_device.rx_code

@@ -1,11 +1,13 @@
 from States.DefaultState import DefaultState
+from States.CommandSelect import CommandSelect
 import time
 
 
 class StateMachine:
     def __init__(self, container):
         self.states = {
-            'default': DefaultState(container, self)
+            'default': DefaultState(container, self),
+            'command_select': CommandSelect(container, self)
         }
 
         self.current_state = self.states['default']
