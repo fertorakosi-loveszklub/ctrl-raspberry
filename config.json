@@ -2,6 +2,6 @@
   "rxPin": 27,
   "rxDebounce": 3000,
   "keypadDebounce": 750,
-  "remoteIP": "192.168.1.66",
+  "remoteIP": "192.168.3.33",
   "remotePort": 1993
 }
