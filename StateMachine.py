@@ -1,5 +1,6 @@
 from States.DefaultState import DefaultState
 from States.CommandSelect import CommandSelect
+from States.LearnLampCodes import LearnLampCodes
 import time
 
 
@@ -8,6 +9,7 @@ class StateMachine:
         self.states = {
             'default': DefaultState(container, self),
             'command_select': CommandSelect(container, self)
+            'learn_lamp_codes': LearnLampCodes(container, self)
         }
 
         self.current_state = self.states['default']
