@@ -39,6 +39,17 @@ class RadioClient:
 
         self.save_keymap("radio.json")
 
+    def rememberLamp(self, radio_code, remote):
+        if str(radio_code) in self.keymap:
+            self.keymap.pop(str(radio_code))
+
+        self.keymap[str(radio_code)] = {
+            'message': 'lamp' + str(remote),
+            'type': str('1')
+        }
+
+        self.save_keymap("radio.json")
+
     def get(self, radio_code):
         if str(radio_code) not in self.keymap:
             return None

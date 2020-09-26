@@ -1,7 +1,6 @@
 from States.AbstractState import AbstractState
 import time
 
-
 class CommandSelect(AbstractState):
     def run(self):
         keypad = self.container['keypad']
@@ -45,6 +44,9 @@ class CommandSelect(AbstractState):
                         break
 
                     time.sleep(0.1)
+
+        elif key in [3]:
+            self.stateMachine.change_state('learn_lamp_codes')
 
         else:
             screen.message_and_reset('Megszakitva')
